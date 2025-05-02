@@ -21,5 +21,5 @@ python main.py
 ```
 Des visualisations seront générées automatiquement dans outputs_images/ en éxécutant les autres fichiers, lire le rapport pour comprendre le rôle de chaque.
 
-📊 Objectif
+# Objectif
 Apprendre une politique optimale pour atteindre la base (1,1) dans un environnement à récompenses fixes. Le robot explore l’environnement à l’aide d’une stratégie ε-greedy, puis apprend par renforcement les meilleures actions à adopter selon sa position.
