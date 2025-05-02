@@ -45,7 +45,7 @@ def is_valid(pos):
 
 def step_env(pos, action):
     dx,dy = ACTION_DELTAS[action]
-    nxt   = (pos[0]+dx, pos[1]+dy)
+    nxt = (pos[0]+dx, pos[1]+dy)
     if not is_valid(nxt):
         return pos, -5
     if nxt == BASE_POS:
@@ -60,14 +60,14 @@ def choose_action(q_table, idx, eps):
     return int(np.argmax(q_table[idx]))
 
 def train_q_learning():
-    n_states = len(valid_states)
-    q_table  = np.random.uniform(-1,1,(n_states,len(ACTIONS)))
+    n_states= len(valid_states)
+    q_table= np.random.uniform(-1,1,(n_states,len(ACTIONS)))
 
     stats = {
-        'rewards':   np.zeros(N_EPISODES),
-        'steps':     np.zeros(N_EPISODES),
+        'rewards':np.zeros(N_EPISODES),
+        'steps':np.zeros(N_EPISODES),
         'collisions':np.zeros(N_EPISODES),
-        'goals':     np.zeros(N_EPISODES)
+        'goals':np.zeros(N_EPISODES)
     }
 
     for ep in range(1, N_EPISODES+1):
@@ -108,9 +108,8 @@ def train_q_learning():
                 stats['goals'][ep-1] = 1
                 break
 
-        stats['rewards'][ep-1]    = total_reward
-        stats['steps'][ep-1]       = step
-        stats['collisions'][ep-1]  = collisions
+        stats['steps'][ep-1] = step
+        stats['collisions'][ep-1] = collisions
 
         if ep==1 or ep%50==0:
             logging.info(f"Ép {ep}/{N_EPISODES} | R={total_reward:.1f} | steps={step} | colls={collisions}")
@@ -173,11 +172,34 @@ def plot_path(path):
     plt.pause(3)
     plt.close(fig)
 
-def plot_stats(stats):
-    fig,ax=plt.subplots(figsize=(8,4))
-    ax.plot(stats['rewards'])
-    ax.set(title="Récompenses par épisode", xlabel="Épisode", ylabel="Récompense")
-    plt.draw(); plt.pause(3); plt.close(fig)
+def plot_success_rate(stats, window=50):
+    """
+    Trace le taux de réussite : proportion d'épisodes où la base a été atteinte.
+    le cumul et une moyenne glissante pour lisser.
+    """
+    goals = stats['goals']  # vecteur 0/1 de longueur N_EPISODES
+    episodes = np.arange(1, len(goals) + 1)
+
+    # Taux de réussite cumulé à l'épisode t
+    cumulative_rate = np.cumsum(goals) / episodes
+
+    # Moyenne glissante sur 'window' épisodes
+    if len(goals) >= window:
+        kernel = np.ones(window) / window
+        moving_rate = np.convolve(goals, kernel, mode='valid')
+        plt.plot(np.arange(window, len(goals) + 1), moving_rate,
+                 label=f"Moyenne glissante sur {window} épisodes")
+    # On trace aussi le taux cumulé
+    plt.plot(episodes, cumulative_rate, label="Taux de réussite cumulé")
+    plt.xlabel("Épisode")
+    plt.ylabel("Taux de réussite")
+    plt.ylim(0, 1.05)
+    plt.title("Évolution du taux de réussite")
+    plt.legend()
+    plt.grid(True)
+    plt.pause(3)
+    plt.show()
+
 #MAIN
 if __name__=="__main__":
     # 1)Affiche le labyrinthe
@@ -196,4 +218,4 @@ if __name__=="__main__":
     path = simulate(policy, start)
     # 7)Affiche la trajectoire et les stats
     plot_path(path)
-    plot_stats(stats)
+    plot_success_rate(stats, window=50)
