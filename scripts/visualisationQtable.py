@@ -1,5 +1,5 @@
 import numpy as np
-import matplotlib            # importer matplotlib AVANT pyplot
+import matplotlib
 matplotlib.use("TkAgg")
 import matplotlib.pyplot as plt
 from maze_layout import GRID_WIDTH, GRID_HEIGHT, build_maze

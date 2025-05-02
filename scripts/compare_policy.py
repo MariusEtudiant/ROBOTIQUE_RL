@@ -1,7 +1,7 @@
 import numpy as np
 import random
 import logging
-import matplotlib            # Must set backend before pyplot
+import matplotlib
 matplotlib.use("TkAgg")
 import matplotlib.pyplot as plt
 from maze_layout import GRID_WIDTH, GRID_HEIGHT, build_maze
