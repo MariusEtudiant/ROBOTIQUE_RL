@@ -1,21 +1,16 @@
 import numpy as np
-import matplotlib              # importer matplotlib AVANT pyplot
-matplotlib.use("TkAgg")       # choisir ton backend
+import matplotlib
+matplotlib.use("TkAgg")
 import matplotlib.pyplot as plt
 from maze_layout import GRID_WIDTH, GRID_HEIGHT, build_maze
-
-
 # Paramètres de grille
 ACTIONS = ['up', 'down', 'left', 'right']
-# Définition des murs (labyrinthe complet)
+# Définition des murs
 WALLS = build_maze()
 
-# Chargement Q-table
+#Q-table
 
 Q = np.load("q_table.npy")  # shape (n_states, 4)
-
-
-# États valides & mapping
 
 valid_states = [
     (x, y)
@@ -25,9 +20,8 @@ valid_states = [
 ]
 state_to_idx = {s: i for i, s in enumerate(valid_states)}
 
-# ------------------------------------------
-# 1) Affichage des 4 heatmaps par action
-# ------------------------------------------
+#1)Affichage des 4 heatmaps par action
+
 vmin = np.nanmin(Q)
 vmax = np.nanmax(Q)
 for action_idx, action in enumerate(ACTIONS):
@@ -43,9 +37,9 @@ for action_idx, action in enumerate(ACTIONS):
     plt.savefig(f"outputs_images/heatmap_Q_{action}.png")
     plt.close()
 
-# ------------------------------------------------
-# 2) Affichage de la heatmap de V(s) = max_a Q(s,a)
-# ------------------------------------------------
+
+# 2)Affichage de la heatmap de V(s) = max_a Q(s,a)
+
 V_grid = np.full((GRID_HEIGHT, GRID_WIDTH), np.nan)
 for (x, y) in valid_states:
     idx = state_to_idx[(x, y)]

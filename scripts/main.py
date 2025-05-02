@@ -1,37 +1,33 @@
 import numpy as np
 import random
 import logging
-import matplotlib            # importer matplotlib AVANT pyplot
-matplotlib.use("TkAgg")     # choisir ton backend
+import matplotlib
+matplotlib.use("TkAgg")
 import matplotlib.pyplot as plt
-
 from maze_layout import GRID_WIDTH, GRID_HEIGHT, BASE_POS, build_maze
 
-# ----------------------------
-# CONFIGURATION GLOBALE
-# ----------------------------
-logging.basicConfig(level=logging.INFO, format='%(message)s')
 
-ACTIONS       = ['up', 'down', 'left', 'right']
+#CONFIG GLOBALE
+logging.basicConfig(level=logging.INFO, format='%(message)s')
+ACTIONS = ['up', 'down', 'left', 'right']
 ACTION_DELTAS = {'up': (0, 1), 'down': (0, -1), 'left': (-1, 0), 'right': (1, 0)}
-ALPHA         = 0.2
-GAMMA         = 0.95
-EPS_START     = 0.3
-EPS_MIN       = 0.01
-EPS_DECAY     = 1000
-MAX_STEPS     = 100
-N_EPISODES    = 2000
+ALPHA = 0.2
+GAMMA = 0.95
+EPS_START = 0.3
+EPS_MIN= 0.01
+EPS_DECAY = 1000
+MAX_STEPS= 100
+N_EPISODES= 2000
 
 
 WALLS = build_maze()
 
-# États valides et mappages
+#États valides et mappages
 valid_states = [(x,y) for x in range(GRID_WIDTH) for y in range(GRID_HEIGHT) if (x,y) not in WALLS]
 state_to_idx = {s:i for i,s in enumerate(valid_states)}
 
-# ----------------------------
-# AFFICHAGE DU LABYRINTHE
-# ----------------------------
+# AeFFICHAGE DU LABYRINTHE
+
 def show_maze():
     fig, ax = plt.subplots()
     ax.set_aspect('equal')
@@ -42,9 +38,7 @@ def show_maze():
     ax.legend(); ax.grid(True); ax.set_title("Labyrinthe")
     plt.draw(); plt.pause(2); plt.close(fig)
 
-# ----------------------------
-# ENVIRONNEMENT
-# ----------------------------
+#ENVIRONNEMENT
 def is_valid(pos):
     x,y = pos
     return 0<=x<GRID_WIDTH and 0<=y<GRID_HEIGHT and pos not in WALLS
@@ -58,9 +52,8 @@ def step_env(pos, action):
         return nxt, +100
     return nxt, -1
 
-# ----------------------------
-# Q-LEARNING
-# ----------------------------
+
+#q-learning
 def choose_action(q_table, idx, eps):
     if random.random() < eps:
         return random.randrange(len(ACTIONS))
@@ -79,7 +72,7 @@ def train_q_learning():
 
     for ep in range(1, N_EPISODES+1):
         eps = max(EPS_MIN, EPS_START * np.exp(-ep/EPS_DECAY))
-        # choisir un départ aléatoire différent de la base
+        #choisir un départ aléatoire différent de la base
         start = random.choice(valid_states)
         while start == BASE_POS:
             start = random.choice(valid_states)
@@ -107,7 +100,7 @@ def train_q_learning():
 
             # transition
             if nxt_idx is None:
-                # un mur invalide improbable
+                #un mur invalide improbable
                 nxt_idx = state_idx
             state_idx = nxt_idx
 
@@ -124,27 +117,25 @@ def train_q_learning():
 
     return q_table, stats
 
-# ----------------------------
-# SAUVEGARDE & CHARGEMENT
-# ----------------------------
+
+#SAUVEGARDE & CHARGEMENT
+
 def save_q(q_table, fname="q_table.npy"):
     np.save(fname, q_table)
 
 def load_q(fname="q_table.npy"):
     return np.load(fname)
 
-# ----------------------------
-# EXTRACTION DE POLITIQUE
-# ----------------------------
+#EXTRACTION DE POLITIQUE
+
 def extract_policy(q_table):
     return {
         state: ACTIONS[int(np.argmax(q_table[state_to_idx[state]]))]
         for state in valid_states
     }
 
-# ----------------------------
-# SIMULATION & VISUALISATION
-# ----------------------------
+#SIMULATION & VISUALISATION
+
 def simulate(policy, start):
     path = [start]; pos=start
     for _ in range(MAX_STEPS):
@@ -161,17 +152,14 @@ def plot_path(path):
     ax.set_xlim(-1, GRID_WIDTH)
     ax.set_ylim(-1, GRID_HEIGHT)
     ax.grid(True)
-
-    # dessine murs & base
+    #dessine murs & base
     for w in WALLS:
         ax.plot(*w, 'ks', markersize=6)
     ax.plot(*BASE_POS, 'ro', markersize=10)
-
-    # préparer l'objet robot et la ligne de tracé
+    #préparer l'objet robot et la ligne de tracé
     robot, = ax.plot([], [], 'bo', markersize=8)
     line,  = ax.plot([], [], 'b-', linewidth=2)
-
-    # animation pas à pas
+    #animation pas à pas
     xs, ys = [], []
     for (x, y) in path:
         xs.append(x)
@@ -181,37 +169,31 @@ def plot_path(path):
         robot.set_data([x], [y])
         plt.draw()
         plt.pause(0.4)
-
-    # pause finale pour bien voir le chemin complet
+    #pause finale pour bien voir le chemin complet
     plt.pause(3)
     plt.close(fig)
-
-
 
 def plot_stats(stats):
     fig,ax=plt.subplots(figsize=(8,4))
     ax.plot(stats['rewards'])
     ax.set(title="Récompenses par épisode", xlabel="Épisode", ylabel="Récompense")
     plt.draw(); plt.pause(3); plt.close(fig)
-
-# ----------------------------
-# MAIN
-# ----------------------------
+#MAIN
 if __name__=="__main__":
-    # 1) Affiche le labyrinthe
+    # 1)Affiche le labyrinthe
     show_maze()
-    # 2) Entraîne et récupère Q_final
+    # 2)Entraîne et récupère Q_final
     Q_final, stats = train_q_learning()
-    # 3) Sauvegarde la Q-table finale
+    # 3)Sauvegarde la Q-table finale
     save_q(Q_final, "q_table.npy")
-    # 4) Charge-la (pour démonstration)
+    # 4)Charge-la (pour démonstration)
     Q = load_q("q_table.npy")
-    # 5) Extrait la politique gloutonne
+    # 5)Extrait la politique gloutonne
     policy = extract_policy(Q)
-    # 6) Simule depuis un départ aléatoire
+    # 6)Simule depuis un départ aléatoire
     start = random.choice([s for s in valid_states if s!=BASE_POS])
     print("Départ :", start)
     path = simulate(policy, start)
-    # 7) Affiche la trajectoire et les stats
+    # 7)Affiche la trajectoire et les stats
     plot_path(path)
     plot_stats(stats)

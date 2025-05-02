@@ -6,9 +6,7 @@ matplotlib.use("TkAgg")
 import matplotlib.pyplot as plt
 from maze_layout import GRID_WIDTH, GRID_HEIGHT, build_maze
 
-# ---------------------
-# PARAMÈTRES GLOBAUX
-# ---------------------
+#PARAMÈTRES GLOBAUX
 
 ACTIONS = ['up', 'down', 'left', 'right']
 ACTION_DELTAS = {'up': (0,1), 'down': (0,-1), 'left': (-1,0), 'right': (1,0)}
@@ -18,22 +16,21 @@ MAX_STEPS = 100; N_EPISODES = 2000
 BASE_POSITION = (1,1)
 SNAPSHOTS = [1, 100, 500, 1000, 2000]
 
-# ---------------------
-# DESSIN DU LABYRINTHE
-# ---------------------
+
+#DESSIN DU LABYRINTHE
+
 WALLS = build_maze()
 
-# ---------------------
-# ÉTATS & Q-TABLE
-# ---------------------
+
+#ÉTATS & Q-TABLE
+
 valid_states = [(x,y) for x in range(GRID_WIDTH) for y in range(GRID_HEIGHT) if (x,y) not in WALLS]
 state_to_idx = {s:i for i,s in enumerate(valid_states)}
 idx_to_state = {i:s for s,i in state_to_idx.items()}
 Q = np.random.uniform(-1,1,(len(valid_states), len(ACTIONS)))
 
-# ---------------------
-# ENVIRONNEMENT & ACTION
-# ---------------------
+#ENVIRONNEMENT & ACTION
+
 def is_valid(pos):
     x,y = pos
     return 0<=x<GRID_WIDTH and 0<=y<GRID_HEIGHT and pos not in WALLS
@@ -49,9 +46,8 @@ def choose_action(idx, eps):
     if random.random()<eps: return random.randrange(len(ACTIONS))
     return int(np.argmax(Q[idx]))
 
-# ---------------------
 # TRAINING + SNAPSHOTS
-# ---------------------
+
 logging.basicConfig(level=logging.INFO, format='%(message)s')
 snap_q = {}
 
@@ -74,9 +70,8 @@ for ep in range(1, N_EPISODES+1):
     if ep%50==0 or ep==1:
         logging.info(f"Épisode {ep}/{N_EPISODES}")
 
-# ---------------------
-# FONCTION DE TRAÇAGE (CHAMP DE VECTEURS)
-# ---------------------
+#FONCTION DE TRAÇAGE (CHAMP DE VECTEURS)
+
 def plot_policy(ax, Qmat, title):
     X,Y,U,V = [],[],[],[]
     for idx, row in enumerate(Qmat):
@@ -92,9 +87,8 @@ def plot_policy(ax, Qmat, title):
     ax.set_xlim(-1,GRID_WIDTH); ax.set_ylim(-1,GRID_HEIGHT)
     ax.set_aspect('equal'); ax.set_title(title); ax.axis('off')
 
-# ---------------------
-# AFFICHAGE COMPARATIF
-# ---------------------
+#AFFICHAGE COMPARATIF
+
 fig, axes = plt.subplots(2,3, figsize=(12,8))
 axes = axes.flatten()
 
